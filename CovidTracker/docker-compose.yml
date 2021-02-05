@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  covid-testtracker:
+    image: ${DOCKER_REGISTRY-}covidtesttracker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+        ConnectionStrings__DefaultConnection: "Server=db;Database=covidtesttracker${ENVIROMENT};User=${DBUser};Password=${DBPassword};"
+        Administrator: "${DefaultUser}"
+        DefaultPassword: "${DefaultPassword}"
+        EmailSender__Host: "${SMTPHost}"
+        EmailSender__Port: "${SMTPPort}"
+        EmailSender__EnableSSL: "false"
+        EmailSender__UserName: "${SMTPUsername}"
+        EmailSender__Password: "${SMTPPassword}"
+
+  db:
+    image: "mcr.microsoft.com/mssql/server"
+    environment:
+        SA_PASSWORD: "${DBPassword}"
+        ACCEPT_EULA: "Y"
