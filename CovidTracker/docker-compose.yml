@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   covid-testtracker:
-    image: ${DOCKER_REGISTRY-}covidtesttracker
+    image: ghcr.io/ptorrezao/covid-testtracker/covidtesttracker:main
     build:
       context: .
       dockerfile: Dockerfile
