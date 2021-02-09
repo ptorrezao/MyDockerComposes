@@ -2,10 +2,8 @@ version: '3.4'
 
 services:
   covid-testtracker:
-    image: ghcr.io/ptorrezao/covid-testtracker/covidtesttracker:main
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/ptorrezao/covid-testtracker/covidtesttracker:development
+    restart: always
     environment:
         ConnectionStrings__DefaultConnection: "Server=db;Database=covidtesttracker${ENVIROMENT};User=${DBUser};Password=${DBPassword};"
         Administrator: "${DefaultUser}"
@@ -15,9 +13,20 @@ services:
         EmailSender__EnableSSL: "false"
         EmailSender__UserName: "${SMTPUsername}"
         EmailSender__Password: "${SMTPPassword}"
+    networks:
+      - proxy
+    labels:
+      # Traefik configuration, Hostname needs to be changed
+      - traefik.http.routers.ct-http.rule=Host(`${HOST}`)
+      - traefik.http.routers.ct-http.entrypoints=http
+      - traefik.http.routers.ct-http.middlewares=redirect
+      - traefik.http.routers.ct-https.rule=Host(`${HOST}`)
+      - traefik.http.routers.ct-https.entrypoints=https
+      - traefik.http.routers.ct-https.tls=true
+      - traefik.http.routers.ct-https.tls.certresolver=letsencrypt
+      - traefik.http.services.ct.loadbalancer.server.port=80
+      - traefik.http.middlewares.redirect.redirectscheme.scheme=https
 
-  db:
-    image: "mcr.microsoft.com/mssql/server"
-    environment:
-        SA_PASSWORD: "${DBPassword}"
-        ACCEPT_EULA: "Y"
+networks:
+  proxy:
+    external: true
