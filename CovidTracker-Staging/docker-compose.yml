@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  covid-testtracker:
+    image: ghcr.io/ptorrezao/covid-testtracker/covidtesttracker:development
+    restart: always
+    environment:
+        ConnectionStrings__DefaultConnection: "Server=db;Database=covidtesttracker${ENVIROMENT};User=${DBUser};Password=${DBPassword};"
+        AppointmentManager: "${DefaultUser}"
+        Administrator: "${DefaultUser}"
+        DefaultPassword: "${DefaultPassword}"
+        EmailSender__Host: "${SMTPHost}"
+        EmailSender__Port: "${SMTPPort}"
+        EmailSender__EnableSSL: "false"
+        EmailSender__UserName: "${SMTPUsername}"
+        EmailSender__Password: "${SMTPPassword}"
+    networks:
+      - proxy
+    labels:
+      # Traefik configuration, Hostname needs to be changed
+      - traefik.http.routers.cts-http.rule=Host(`${HOST}`)
+      - traefik.http.routers.cts-http.entrypoints=http
+      - traefik.http.routers.cts-http.middlewares=redirect
+      - traefik.http.routers.cts-https.rule=Host(`${HOST}`)
+      - traefik.http.routers.cts-https.entrypoints=https
+      - traefik.http.routers.cts-https.tls=true
+      - traefik.http.routers.cts-https.tls.certresolver=letsencrypt
+      - traefik.http.services.cts.loadbalancer.server.port=80
+      - traefik.http.middlewares.redirect.redirectscheme.scheme=https
+
+networks:
+  proxy:
+    external: true
